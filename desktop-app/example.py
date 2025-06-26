@@ -44,6 +44,7 @@ class IncubatorApp(QMainWindow):
                 padding: 10px 18px;
                 border-radius: 8px;
                 font-size: 15px;
+                cursor: pointer;
                 font-weight: 500;
                 transition: background 0.2s, color 0.2s;
             }
@@ -51,6 +52,7 @@ class IncubatorApp(QMainWindow):
                 background-color: #00ffd5;
                 color: #181c20;
                 border: 1.5px solid #00ffd5;
+                cursor: pointer;
             }
             QLabel, QComboBox, QTextBrowser {
                 padding: 4px;
@@ -87,13 +89,13 @@ class IncubatorApp(QMainWindow):
                 padding: 4px 8px;
             }
         """)
-
+        # il main layout hiye page il bech tit7al ya3ni il main window 
         # Main layout
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
-
-        # Supervision Group
+        #ay groupbox houwa 3ibara 3ala div = container lil les composant ili fi wistou
+        # Supervision Group | line just na3mlou f initialisation les les labels wil inputs 
         self.supervision_group = QGroupBox("Supervision en Temps Réel")
         sup_layout = QGridLayout()
         self.temp_display = QLCDNumber()
@@ -101,8 +103,8 @@ class IncubatorApp(QMainWindow):
         self.fan_status = QLabel("Ventilateur: OFF")
         self.valve_status = QLabel("Électrovanne: OFF")
         self.motor_status = QLabel("Moteur: OFF")
-
-        sup_layout.addWidget(QLabel("Température actuelle"), 0, 0)
+        # just na3mlou fil ta9sim ta3 il grid linne 
+        sup_layout.addWidget(QLabel("Température actuelle"), 0, 0)  # a7ne 3mlne grid 2*4 ya3ni ken ni7sbouha matrice kol label wlaa input bch ykou 3andhe cordoneé fil matrice ili houma bch ykounou (x,y)
         sup_layout.addWidget(self.temp_display, 0, 1)
         sup_layout.addWidget(QLabel("Humidité actuelle"), 1, 0)
         sup_layout.addWidget(self.hum_display, 1, 1)
@@ -113,7 +115,7 @@ class IncubatorApp(QMainWindow):
 
         # Configuration Group
         self.config_group = QGroupBox("Configuration des Seuils")
-        config_layout = QFormLayout()
+        config_layout = QFormLayout()  # form like usual fil html na3mlou fih recupération lil les donné ta3ne
         self.temp_high = QDoubleSpinBox()
         self.temp_low = QDoubleSpinBox()
         self.hum_min = QSpinBox()
