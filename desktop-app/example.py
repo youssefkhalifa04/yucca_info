@@ -1,194 +1,285 @@
-from PyQt5.QtWidgets import (
-    QApplication, QWidget, QLabel, QPushButton, QGroupBox, QVBoxLayout, QHBoxLayout,
-    QFormLayout, QDoubleSpinBox, QSpinBox, QComboBox, QTextBrowser, QLCDNumber,
-    QStatusBar, QMainWindow, QGridLayout
-)
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QFont, QColor, QPalette
 import sys
+import random
+import os
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
+    QStackedWidget, QListWidget, QListWidgetItem, QFrame, QSizePolicy
+)
+from PyQt5.QtGui import QFont, QIcon, QPixmap
+from PyQt5.QtCore import Qt, QTimer
+import pyqtgraph as pg
 
-
-class IncubatorApp(QMainWindow):
-    def __init__(self):
+# --- Sidebar Widget ---
+class Sidebar(QListWidget):
+    def __init__(self, parent):
         super().__init__()
-        self.setWindowTitle("Supervision Incubateur d'Oeufs")
-        self.setGeometry(100, 100, 1000, 700)
-
-        # Apply professional modern dark theme
+        self.setFixedWidth(360)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setStyleSheet("""
-            QWidget {
-                background-color: #181c20;
-                color: #e0e6ed;
-                font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            QListWidget {
+                           padding-left : 10px ;
+                           padding-right : 10px ;
+                background-color: #0f172a;
+                color: #fff;
+                border: none;
                 font-size: 15px;
+                font-family: 'Segoe UI';
             }
-            QGroupBox {
-                border: 1.5px solid #2d3748;
-                border-radius: 12px;
-                margin-top: 18px;
-                background-color: #23272f;
-                padding: 12px 10px 10px 10px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            QListWidget::item {
+                padding: 16px 32 16px 32px;
+                margin-bottom: 2px;
             }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 18px;
-                padding: 0 8px 0 8px;
-                color: #00ffd5;
-                font-size: 17px;
-                font-weight: bold;
-            }
-            QPushButton {
-                background-color: #222c36;
-                border: 1.5px solid #00ffd5;
-                padding: 10px 18px;
+            QListWidget::item:selected {
+                background-color: #2563eb;
                 border-radius: 8px;
-                font-size: 15px;
-                cursor: pointer;
-                font-weight: 500;
-                transition: background 0.2s, color 0.2s;
-            }
-            QPushButton:hover {
-                background-color: #00ffd5;
-                color: #181c20;
-                border: 1.5px solid #00ffd5;
-                cursor: pointer;
-            }
-            QLabel, QComboBox, QTextBrowser {
-                padding: 4px;
-            }
-            QLCDNumber {
-                background-color: #181c20;
-                color: #00ffae;
-                border: 1.5px solid #2d3748;
-                border-radius: 6px;
-                margin: 2px 0;
-            }
-            QTextBrowser {
-                background: #23272f;
-                border-radius: 8px;
-                border: 1.5px solid #2d3748;
-                min-height: 60px;
-            }
-            QStatusBar {
-                background: #23272f;
-                color: #00ffd5;
-                border-top: 1.5px solid #2d3748;
-                font-size: 14px;
-            }
-            QComboBox {
-                background: #23272f;
-                border-radius: 6px;
-                border: 1.5px solid #2d3748;
-            }
-            QSpinBox, QDoubleSpinBox {
-                background: #23272f;
-                border-radius: 6px;
-                border: 1.5px solid #2d3748;
-                color: #e0e6ed;
-                padding: 4px 8px;
+                color: #fff;
             }
         """)
-        # il main layout hiye page il bech tit7al ya3ni il main window 
-        # Main layout
-        main_widget = QWidget()
-        self.setCentralWidget(main_widget)
-        main_layout = QVBoxLayout(main_widget)
-        #ay groupbox houwa 3ibara 3ala div = container lil les composant ili fi wistou
-        # Supervision Group | line just na3mlou f initialisation les les labels wil inputs 
-        self.supervision_group = QGroupBox("Supervision en Temps Réel")
-        sup_layout = QGridLayout()
-        self.temp_display = QLCDNumber()
-        self.hum_display = QLCDNumber()
-        self.fan_status = QLabel("Ventilateur: OFF")
-        self.valve_status = QLabel("Électrovanne: OFF")
-        self.motor_status = QLabel("Moteur: OFF")
-        # just na3mlou fil ta9sim ta3 il grid linne 
-        sup_layout.addWidget(QLabel("Température actuelle"), 0, 0)  # a7ne 3mlne grid 2*4 ya3ni ken ni7sbouha matrice kol label wlaa input bch ykou 3andhe cordoneé fil matrice ili houma bch ykounou (x,y)
-        sup_layout.addWidget(self.temp_display, 0, 1)
-        sup_layout.addWidget(QLabel("Humidité actuelle"), 1, 0)
-        sup_layout.addWidget(self.hum_display, 1, 1)
-        sup_layout.addWidget(self.fan_status, 2, 0)
-        sup_layout.addWidget(self.valve_status, 2, 1)
-        sup_layout.addWidget(self.motor_status, 3, 0)
-        self.supervision_group.setLayout(sup_layout)
+        ICON_DIR = os.path.join(os.path.dirname(__file__), "icons")
+        items = [
+            ("Dashboard", ""),
+            ("Configuration", ""),
+            ("Manual Control", ""),
+            ("Automatic Mode", ""),
+            ("Egg Types", ""),
+            ("Logs & History", ""),
+            ("Settings", ""),
+        ]
+        for text, icon in items:
+            icon_path = os.path.join(ICON_DIR, icon)
+            item = QListWidgetItem(QIcon(icon_path), text)
+            self.addItem(item)
+        self.currentRowChanged.connect(parent.change_page)
 
-        # Configuration Group
-        self.config_group = QGroupBox("Configuration des Seuils")
-        config_layout = QFormLayout()  # form like usual fil html na3mlou fih recupération lil les donné ta3ne
-        self.temp_high = QDoubleSpinBox()
-        self.temp_low = QDoubleSpinBox()
-        self.hum_min = QSpinBox()
-        self.rotation_interval = QSpinBox()
-        self.send_config_btn = QPushButton("Envoyer")
-        config_layout.addRow("Température haute", self.temp_high)
-        config_layout.addRow("Température basse", self.temp_low)
-        config_layout.addRow("Humidité minimale", self.hum_min)
-        config_layout.addRow("Intervalle rotation (min)", self.rotation_interval)
-        config_layout.addRow(self.send_config_btn)
-        self.config_group.setLayout(config_layout)
+# --- Stat Card Widget ---
+class StatCard(QFrame):
+    def __init__(self, title, value, subtitle, icon_path):
+        super().__init__()
+        self.setStyleSheet("""
+            QFrame {
+                background-color: #fff;
+                border-radius: 12px;
+                border: none;
+            }
+        """)
+        layout = QVBoxLayout()
+        layout.setSpacing(6)
+        title_label = QLabel(title)
+        title_label.setFont(QFont("Segoe UI", 10))
+        layout.addWidget(title_label)
 
-        # Manual Control Group
-        self.manual_group = QGroupBox("Contrôle Manuel")
-        manual_layout = QVBoxLayout()
-        self.fan_btn = QPushButton("Ventilateur ON/OFF")
-        self.valve_btn = QPushButton("Électrovanne ON/OFF")
-        self.left_btn = QPushButton("Tourner à gauche")
-        self.right_btn = QPushButton("Tourner à droite")
-        manual_layout.addWidget(self.fan_btn)
-        manual_layout.addWidget(self.valve_btn)
-        manual_layout.addWidget(self.left_btn)
-        manual_layout.addWidget(self.right_btn)
-        self.manual_group.setLayout(manual_layout)
+        hbox = QHBoxLayout()
+        value_label = QLabel(value)
+        value_label.setFont(QFont("Segoe UI", 22, QFont.Bold))
+        hbox.addWidget(value_label)
+        hbox.addStretch()
+        icon = QLabel()
+        icon.setPixmap(QPixmap(icon_path).scaled(22, 22, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        hbox.addWidget(icon)
+        layout.addLayout(hbox)
 
-        # Mode Group
-        self.mode_group = QGroupBox("Mode de Fonctionnement")
-        mode_layout = QVBoxLayout()
-        self.mode_btn = QPushButton("Activer Mode Automatique")
-        self.mode_label = QLabel("Mode: MANUEL")
-        mode_layout.addWidget(self.mode_btn)
-        mode_layout.addWidget(self.mode_label)
-        self.mode_group.setLayout(mode_layout)
+        subtitle_label = QLabel(subtitle)
+        subtitle_label.setFont(QFont("Segoe UI", 9))
+        subtitle_label.setStyleSheet("color: #6b7280;")
+        layout.addWidget(subtitle_label)
+        self.setLayout(layout)
 
-        # Egg Type Group
-        self.egg_group = QGroupBox("Type d'œuf")
-        egg_layout = QVBoxLayout()
-        self.egg_selector = QComboBox()
-        self.egg_selector.addItems(["Poulet", "Caille", "Canard", "Dinde"])
-        self.load_egg_btn = QPushButton("Charger paramètres")
-        egg_layout.addWidget(self.egg_selector)
-        egg_layout.addWidget(self.load_egg_btn)
-        self.egg_group.setLayout(egg_layout)
+# --- System Status Card ---
+class SystemStatusCard(QFrame):
+    def __init__(self, status_list):
+        super().__init__()
+        self.setStyleSheet("""
+            QFrame {
+                background-color: #fff;
+                border-radius: 12px;
+                padding: 18px;
+                border: none;
+            }
+        """)
+        layout = QVBoxLayout()
+        title = QLabel("System Status")
+        title.setFont(QFont("Segoe UI", 13, QFont.Bold))
+        layout.addWidget(title)
+        for name, icon_path, on in status_list:
+            row = QHBoxLayout()
+            icon = QLabel()
+            icon.setPixmap(QPixmap(icon_path).scaled(22, 22, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            label = QLabel(name)
+            label.setFont(QFont("Segoe UI", 11))
+            indicator = QLabel("●")
+            indicator.setStyleSheet(f"color: {'#22c55e' if on else '#d1d5db'}; font-size: 18px;")
+            status = QLabel("ON" if on else "OFF")
+            status.setStyleSheet(f"color: {'#22c55e' if on else '#6b7280'}; font-weight: bold; font-size: 12px;")
+            row.addWidget(icon)
+            row.addWidget(label)
+            row.addStretch()
+            row.addWidget(indicator)
+            row.addWidget(status)
+            layout.addLayout(row)
+        self.setLayout(layout)
 
-        # Log Viewer
-        self.log_browser = QTextBrowser()
+# --- Dashboard Page ---
+class DashboardPage(QWidget):
+    def __init__(self):
+        super().__init__()
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Layout packing (add spacing between groups for a professional look)
-        main_layout.addWidget(self.supervision_group)
-        main_layout.addSpacing(10)
-        main_layout.addWidget(self.config_group)
-        main_layout.addSpacing(10)
-        main_layout.addWidget(self.manual_group)
-        main_layout.addSpacing(10)
-        main_layout.addWidget(self.mode_group)
-        main_layout.addSpacing(10)
-        main_layout.addWidget(self.egg_group)
-        main_layout.addSpacing(10)
-        main_layout.addWidget(QLabel("Journalisation"))
-        main_layout.addWidget(self.log_browser)
+        # Stat cards
+        stat_cards = QHBoxLayout()
+        stat_cards.setSpacing(18)
+        ICON_DIR = os.path.join(os.path.dirname(__file__), "icons")
+        stat_cards.addWidget(StatCard("Temperature", "38.3°C", "Target: 37.5°C", os.path.join(ICON_DIR, "temperature.png")))
+        stat_cards.addWidget(StatCard("Humidity", "62.2%", "Target: 60%", os.path.join(ICON_DIR, "humidity.png")))
+        stat_cards.addWidget(StatCard("Incubation Day", "Day 12", "9 days remaining", os.path.join(ICON_DIR, "egg.png")))
+        stat_cards.addWidget(StatCard("Next Rotation", "45 min", "Every 2 hours", os.path.join(ICON_DIR, "rotation.png")))
+        main_layout.addLayout(stat_cards)
 
-        # Status Bar
-        self.status = QStatusBar()
-        self.setStatusBar(self.status)
-        self.status.showMessage("Port: COM3 | Refresh: 2s")
+        # Chart and System Status
+        mid_layout = QHBoxLayout()
+        mid_layout.setSpacing(18)
 
-        # Timer placeholder
+        # Chart Card
+        chart_card = QFrame()
+        chart_card.setStyleSheet("background-color: #fff; border-radius: 12px; padding: 18px; border: none;")
+        chart_layout = QVBoxLayout()
+        chart_title = QLabel("Temperature & Humidity Trends")
+        chart_title.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        chart_layout.addWidget(chart_title)
+
+        self.graph = pg.PlotWidget()
+        self.graph.setBackground('w')
+        self.graph.showGrid(x=True, y=True)
+        self.graph.setYRange(0, 80)
+        self.temp_line = self.graph.plot(pen=pg.mkPen('#ef4444', width=2))
+        self.hum_line = self.graph.plot(pen=pg.mkPen('#2563eb', width=2))
+        chart_layout.addWidget(self.graph)
+        chart_card.setLayout(chart_layout)
+        chart_card.setMinimumWidth(700)
+        mid_layout.addWidget(chart_card, 3)
+
+        # System Status Card
+        status_list = [
+            ("Circulation Fan", os.path.join(ICON_DIR, "fan.png"), True),
+            ("Water Valve", os.path.join(ICON_DIR, "water.png"), False),
+            ("Rotation Motor", os.path.join(ICON_DIR, "motor.png"), True),
+            ("Heater Element", os.path.join(ICON_DIR, "heater.png"), False),
+        ]
+        mid_layout.addWidget(SystemStatusCard(status_list), 1)
+
+        main_layout.addSpacing(18)
+        main_layout.addLayout(mid_layout)
+        self.setLayout(main_layout)
+
+        # Chart data
+        self.temp_data = []
+        self.hum_data = []
+        self.time = list(range(50))
         self.timer = QTimer()
+        self.timer.timeout.connect(self.update_chart)
         self.timer.start(2000)
 
+    def update_chart(self):
+        if len(self.temp_data) >= 50:
+            self.temp_data.pop(0)
+            self.hum_data.pop(0)
+        self.temp_data.append(37 + random.uniform(-0.5, 0.5))
+        self.hum_data.append(60 + random.uniform(-2, 2))
+        self.temp_line.setData(self.time[:len(self.temp_data)], self.temp_data)
+        self.hum_line.setData(self.time[:len(self.hum_data)], self.hum_data)
 
-if __name__ == '__main__':
+# --- Main Window ---
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Egg Incubator Control")
+        self.setMinimumSize(1400, 850)
+        self.setStyleSheet("background-color: #f3f4f6;")
+
+        # Central widget
+        container = QWidget()
+        main_layout = QHBoxLayout(container)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Sidebar
+        sidebar_layout = QVBoxLayout()
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        sidebar_layout.setSpacing(0)
+
+        # App title
+        title = QLabel("Egg Incubator")
+        title.setFont(QFont("Segoe UI", 16, QFont.Bold))
+        title.setStyleSheet("color: #fff; margin-top: 32px; margin-left: 24px;")
+        subtitle = QLabel("Professional Edition")
+        subtitle.setFont(QFont("Segoe UI", 10))
+        subtitle.setStyleSheet("color: #cbd5e1; margin-left: 24px; margin-bottom: 24px;")
+        sidebar_layout.addWidget(title)
+        sidebar_layout.addWidget(subtitle)
+
+        # Sidebar menu
+        self.sidebar = Sidebar(self)
+        sidebar_layout.addWidget(self.sidebar)
+
+        # Spacer
+        sidebar_layout.addStretch()
+
+        # USB Connected
+        usb = QLabel("● USB Connected")
+        usb.setFont(QFont("Segoe UI", 10))
+        usb.setStyleSheet("color: #22c55e; margin-left: 24px; margin-bottom: 18px;")
+        sidebar_layout.addWidget(usb)
+
+        sidebar_widget = QWidget()
+        sidebar_widget.setLayout(sidebar_layout)
+        sidebar_widget.setFixedWidth(240)
+        sidebar_widget.setStyleSheet("background-color: #0f172a;")
+
+        main_layout.addWidget(sidebar_widget)
+
+        # Main content area
+        content_layout = QVBoxLayout()
+        content_layout.setContentsMargins(32, 24, 32, 24)
+        content_layout.setSpacing(0)
+
+        # Header
+        header_layout = QHBoxLayout()
+        header_label = QLabel("Dashboard")
+        header_label.setFont(QFont("Segoe UI", 28, QFont.Bold))
+        header_label.setStyleSheet("color: #1e293b;")
+        header_layout.addWidget(header_label)
+        header_layout.addStretch()
+        live = QLabel("● Live Monitoring Active")
+        live.setFont(QFont("Segoe UI", 12))
+        live.setStyleSheet("color: #22c55e; margin-right: 12px;")
+        header_layout.addWidget(live)
+        content_layout.addLayout(header_layout)
+        content_layout.addSpacing(18)
+
+        # Pages
+        self.stack = QStackedWidget()
+        self.stack.addWidget(DashboardPage())
+        self.stack.addWidget(QLabel("Configuration Page"))
+        self.stack.addWidget(QLabel("Manual Control Page"))
+        self.stack.addWidget(QLabel("Automatic Mode Page"))
+        self.stack.addWidget(QLabel("Egg Types Page"))
+        self.stack.addWidget(QLabel("Logs & History Page"))
+        self.stack.addWidget(QLabel("Settings Page"))
+        content_layout.addWidget(self.stack)
+
+        content_widget = QWidget()
+        content_widget.setLayout(content_layout)
+        main_layout.addWidget(content_widget)
+
+        self.setCentralWidget(container)
+
+    def change_page(self, index):
+        self.stack.setCurrentIndex(index)
+
+# --- Main ---
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win = IncubatorApp()
+    app.setFont(QFont("Segoe UI", 10))
+    win = MainWindow()
     win.show()
     sys.exit(app.exec_())
