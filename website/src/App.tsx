@@ -15,13 +15,14 @@ const App = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/data")
+      .get("http://localhost:5000/")
       .then((response) => {
         setMessage(response.data.message);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
+    console.log(message);
   }, []);
 
   return (
@@ -37,11 +38,7 @@ const App = () => {
           </Routes>
         </BrowserRouter>
         {/* Optionally show the message somewhere */}
-        {message && (
-          <div className="text-center mt-4 text-green-600 font-semibold">
-            {message}
-          </div>
-        )}
+        
       </TooltipProvider>
     </QueryClientProvider>
   );
