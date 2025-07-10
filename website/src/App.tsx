@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,18 +11,15 @@ import axios from "axios";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [message, setMessage] = useState<string>("");
-
   useEffect(() => {
     axios
       .get("http://localhost:5000/")
       .then((response) => {
-        setMessage(response.data.message);
+        console.log("Flask message:", response.data.message);
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching message:", error);
       });
-    console.log(message);
   }, []);
 
   return (
@@ -33,12 +30,9 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-        {/* Optionally show the message somewhere */}
-        
       </TooltipProvider>
     </QueryClientProvider>
   );
