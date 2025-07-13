@@ -1,22 +1,27 @@
+
 from flask import Flask, jsonify
 from flask_cors import CORS
-from routes.api import api  # Import the API blueprint
-from utils.serial_reader import start_serial_reader  # Start the ESP32 serial listener
+from routes.api import api
+from utils.serial_reader import start_serial_reader
 
-app = Flask(__name__)
-CORS(app)  # Enables CORS for all routes
+def create_app():
+    app = Flask(__name__)
+    CORS(app)  # Enable CORS for all routes
 
-# Register custom API routes
-app.register_blueprint(api)
+    # Register API blueprint
+    app.register_blueprint(api)
 
-@app.route("/")
-def hello():
-    print("hello from flask")
-    return "hello from flask"
-    print("Available routes:")
-    print(app.url_map)
+    @app.route("/")
+    def hello():
+        print("Hello from Flask")
+        return "Hello from Flask"
+
+    return app
 
 if __name__ == '__main__':
-    # Start serial reader in background thread
+    # Start the serial reading thread
     start_serial_reader()
+
+    # Launch the Flask server
+    app = create_app()
     app.run(debug=True, port=5000)
