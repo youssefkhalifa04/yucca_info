@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Thermometer, Droplets, Fan, Gauge, RotateCcw } from 'lucide-react';
 import StatusIndicator from '@/components/StatusIndicator';
+import { supabase } from '../../integration/supabase/supabase';
 
 const Dashboard = () => {
   const [sensorData, setSensorData] = useState({
@@ -56,6 +57,19 @@ const Dashboard = () => {
     }, 5000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data, error } = await supabase.from('sensor_data').select('*');
+      if (error) {
+        console.error('Error fetching data:', error);
+      } else {
+        console.log('Data fetched:', data);
+      }
+      console.log(data);
+    };
+    fetchData();
   }, []);
 
   return (
