@@ -50,9 +50,11 @@ def simulate_data():
             "humidity": hum
         }
         time.sleep(2)  # simulate data every 2 seconds
+        
 
 
 def start_serial_reader(port='COM3', baudrate=9600):
+    
     thread = threading.Thread(target=read_serial, kwargs={'port': port, 'baudrate': baudrate}, daemon=True)
     thread.start()
 
@@ -60,6 +62,7 @@ def start_serial_reader(port='COM3', baudrate=9600):
 def get_latest_data():
     return latest_data
 def save_data_to_supabase(data):
+    read_serial()
     supabase.table('sensor_data').insert({'temperature' : latest_data.temperature ,'humidity' : latest_data.humidity}).execute()
 
 
