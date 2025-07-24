@@ -4,9 +4,18 @@ import threading
 import time
 import random
 import serial
+import time
+
+
 
 latest_data = {}  # Shared in-memory data
 use_simulation = False  # Will become True if serial connection fails
+from supabase import create_client, Client
+
+url = "https://nzxvrvmkepbbtglmkbwd.supabase.co"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56eHZydm1rZXBiYnRnbG1rYndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NTExNzksImV4cCI6MjA2ODQyNzE3OX0.qLJMDiYQniOtJfsKS4md0JyvAfWIYAarXqUBuM00BFg"
+
+supabase: Client = create_client(url, key)
 
 
 def read_serial(port='COM3', baudrate=9600):
@@ -34,7 +43,7 @@ def read_serial(port='COM3', baudrate=9600):
 def simulate_data():
     global latest_data
     while True:
-        temp = round(random.uniform(25.0, 30.0), 2)
+        temp = round(random.uniform(30.0, 38.0), 2)
         hum = round(random.uniform(50.0, 60.0), 2)
         latest_data = {
             "temperature": temp,
@@ -50,3 +59,8 @@ def start_serial_reader(port='COM3', baudrate=9600):
 
 def get_latest_data():
     return latest_data
+def save_data_to_supabase(data):
+    supabase.table('sensor_data').insert({'temperature' : latest_data.temperature ,'humidity' : latest_data.humidity}).execute()
+
+
+

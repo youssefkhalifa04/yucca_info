@@ -8,11 +8,13 @@ import { supabase } from '../../integration/supabase/supabase';
 
 const Dashboard = () => {
   const [sensorData, setSensorData] = useState({
-    temperature: 37.8,
-    humidity: 65,
+    temperature: 0 ,
+    humidity: 0,
     targetTemp: 37.5,
     targetHumidity: 60
   });
+
+
 
   const [actuatorStates, setActuatorStates] = useState({
     fan: true,
@@ -35,42 +37,28 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate real-time updates
-      setSensorData(prev => ({
-        ...prev,
-        temperature: 37.5 + Math.random() * 2 - 1,
-        humidity: 60 + Math.random() * 10 - 5
-      }));
-
-      // Update chart data
-      setChartData(prev => {
-        const newData = [...prev.slice(1)];
-        const now = new Date();
-        newData.push({
-          time: `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`,
-          temperature: 37.5 + Math.random() * 2 - 1,
-          humidity: 60 + Math.random() * 10 - 5
-        });
-        return newData;
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.from('sensor_data').select('*');
+      const { data, error } = await supabase.from('sensor_data').select('*').limit(1);
       if (error) {
         console.error('Error fetching data:', error);
       } else {
         console.log('Data fetched:', data);
       }
       console.log(data);
+      setSensorData({
+        targetHumidity : sensorData.targetHumidity ,
+        targetTemp : sensorData.targetTemp ,
+        temperature : data[0].temperature ,
+        humidity : data[0].humidity ,
+      })
     };
     fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
+
 
   return (
     <div className="space-y-6">
