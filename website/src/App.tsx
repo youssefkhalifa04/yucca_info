@@ -6,21 +6,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import axios from "axios";
+
+
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/")
-      .then((response) => {
-        console.log("Flask message:", response.data.message);
-      })
-      .catch((error) => {
-        console.error("Error fetching message:", error);
-      });
-  }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
