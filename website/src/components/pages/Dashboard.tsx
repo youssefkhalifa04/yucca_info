@@ -38,7 +38,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.from('sensor_data').select('*').limit(1);
+      const { data, error } = await supabase
+  .from('sensor_data')
+  .select('*')
+  .order('created_at', { ascending: false })
+  .limit(1);
+
       if (error) {
         console.error('Error fetching data:', error);
       } else {
