@@ -1,24 +1,40 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Send, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useEggType, EggType } from '@/contexts/EggTypeContext';
 
 const Configuration = () => {
+  const { getCurrentEggType, updateCurrentEggType } = useEggType();
+  const currentEggType = getCurrentEggType();
+
   const [config, setConfig] = useState({
-    minTemp: 36.5,
-    maxTemp: 38.5,
-    minHumidity: 55,
-    maxHumidity: 65,
-    rotationInterval: 120, // minutes
+    minTemp: currentEggType.temperature - 1,
+    maxTemp: currentEggType.temperature,
+    minHumidity: currentEggType.humidity - 1,
+    maxHumidity: currentEggType.humidity,
+    rotationInterval: currentEggType.rotationInterval,
     fanRunTime: 30, // seconds
     heaterPower: 75 // percentage
   });
 
   const [isValid, setIsValid] = useState(true);
+
+  // Update configuration when egg type changes
+  useEffect(() => {
+    setConfig(prev => ({
+      ...prev,
+      minTemp: currentEggType.temperature - 1,
+      maxTemp: currentEggType.temperature,
+      minHumidity: currentEggType.humidity - 1,
+      maxHumidity: currentEggType.humidity,
+      rotationInterval: currentEggType.rotationInterval
+    }));
+  }, [currentEggType]);
 
   const handleInputChange = (field: string, value: string) => {
     const numValue = parseFloat(value);
@@ -45,9 +61,17 @@ const Configuration = () => {
 
   const handleSendConfig = () => {
     if (validateConfig()) {
+      // Update the current egg type with new configuration values
+      updateCurrentEggType({
+        temperature: config.maxTemp, // Use max temp as target temperature
+        humidity: config.maxHumidity, // Use max humidity as target humidity
+        rotationInterval: config.rotationInterval
+      });
+      
       // Simulate sending config via serial port
-      toast.success("Configuration sent successfully to incubator!");
+      toast.success("Configuration sent successfully to incubator and egg type updated!");
       console.log("Sending config:", config);
+      console.log("Updated egg type:", getCurrentEggType());
     } else {
       toast.error("Please check your configuration values");
     }
@@ -68,6 +92,92 @@ const Configuration = () => {
           </span>
         </div>
       </div>
+
+      {/* Current Egg Type Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <span>Current Egg Type: {currentEggType.name}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="eggTemp">Target Temperature (°C)</Label>
+              <Input
+                id="eggTemp"
+                type="number"
+                step="0.1"
+                value={currentEggType.temperature}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    updateCurrentEggType({ temperature: value });
+                  }
+                }}
+                className="text-lg"
+              />
+            </div>
+            <div>
+              <Label htmlFor="eggHumidity">Target Humidity (%)</Label>
+              <Input
+                id="eggHumidity"
+                type="number"
+                step="1"
+                value={currentEggType.humidity}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    updateCurrentEggType({ humidity: value });
+                  }
+                }}
+                className="text-lg"
+              />
+            </div>
+            <div>
+              <Label htmlFor="eggRotation">Rotation Interval (min)</Label>
+              <Input
+                id="eggRotation"
+                type="number"
+                min="1"
+                value={currentEggType.rotationInterval}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    updateCurrentEggType({ rotationInterval: value });
+                  }
+                }}
+                className="text-lg"
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {currentEggType.description}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Reset to default values based on egg type
+                const defaultValues = {
+                  chicken: { temperature: 37.5, humidity: 60, rotationInterval: 120 },
+                  quail: { temperature: 37.8, humidity: 65, rotationInterval: 60 },
+                  duck: { temperature: 37.2, humidity: 70, rotationInterval: 180 },
+                  turkey: { temperature: 37.5, humidity: 65, rotationInterval: 120 }
+                };
+                const defaults = defaultValues[currentEggType.id as keyof typeof defaultValues];
+                if (defaults) {
+                  updateCurrentEggType(defaults);
+                  toast.success(`Reset ${currentEggType.name} to default values`);
+                }
+              }}
+            >
+              Reset to Default
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Temperature Settings */}

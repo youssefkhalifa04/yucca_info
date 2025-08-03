@@ -1,67 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Egg, Download, Upload, CheckCircle } from 'lucide-react';
-
-interface EggType {
-  id: string;
-  name: string;
-  temperature: number;
-  humidity: number;
-  incubationDays: number;
-  rotationInterval: number;
-  description: string;
-}
+import { useEggType, EggType } from '@/contexts/EggTypeContext';
 
 const EggTypeSelection = () => {
-  const [selectedEggType, setSelectedEggType] = useState<string>('chicken');
-  
-  const eggTypes: EggType[] = [
-    {
-      id: 'chicken',
-      name: 'Chicken',
-      temperature: 37.5,
-      humidity: 60,
-      incubationDays: 21,
-      rotationInterval: 120,
-      description: 'Standard chicken eggs with 21-day incubation period'
-    },
-    {
-      id: 'quail',
-      name: 'Quail',
-      temperature: 37.8,
-      humidity: 65,
-      incubationDays: 18,
-      rotationInterval: 60,
-      description: 'Small quail eggs requiring higher humidity'
-    },
-    {
-      id: 'duck',
-      name: 'Duck',
-      temperature: 37.2,
-      humidity: 70,
-      incubationDays: 28,
-      rotationInterval: 180,
-      description: 'Duck eggs with extended incubation period'
-    },
-    {
-      id: 'turkey',
-      name: 'Turkey',
-      temperature: 37.5,
-      humidity: 65,
-      incubationDays: 28,
-      rotationInterval: 120,
-      description: 'Large turkey eggs requiring careful temperature control'
-    }
-  ];
-
-  const getCurrentEggType = () => {
-    return eggTypes.find(type => type.id === selectedEggType) || eggTypes[0];
-  };
+  const { selectedEggType, setSelectedEggType, eggTypes, getCurrentEggType } = useEggType();
 
   const handleEggTypeChange = (eggTypeId: string) => {
     setSelectedEggType(eggTypeId);
@@ -106,21 +54,7 @@ const EggTypeSelection = () => {
             <CardTitle>Select Egg Type</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select value={selectedEggType} onValueChange={handleEggTypeChange}>
-              <SelectTrigger className="w-full text-lg">
-                <SelectValue placeholder="Select egg type" />
-              </SelectTrigger>
-              <SelectContent>
-                {eggTypes.map((eggType) => (
-                  <SelectItem key={eggType.id} value={eggType.id}>
-                    <div className="flex items-center space-x-2">
-                      <Egg className="h-4 w-4" />
-                      <span>{eggType.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            
 
             {/* Egg Type Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

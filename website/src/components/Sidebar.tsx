@@ -29,7 +29,7 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
   ];
 
   return (
-    <div className="w-64 bg-slate-900 text-white h-screen flex flex-col">
+    <div className="w-64 bg-slate-900 text-white fixed top-0 left-0 h-screen z-50 flex flex-col">
       <div className="p-6 border-b border-slate-700">
         <h1 className="text-xl font-bold text-center">Egg Incubator Control</h1>
         <p className="text-sm text-slate-400 text-center mt-1">Professional Edition</p>
