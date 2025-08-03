@@ -1,6 +1,6 @@
 
 
-````markdown
+
 ## Summary: Creating a Tauri App with React
 
 ### Prerequisites
