@@ -34,8 +34,7 @@
 
 #### 3. Configuration
 
-Updated `tauri.conf.json` at:
-`c:\Users\foued\Desktop\website\src-tauri\tauri.conf.json`
+Updated `tauri.conf.json`
 
 Changes:
 
