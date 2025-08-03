@@ -17,7 +17,7 @@
 
 #### 2. Tauri Installation
 - Installed Tauri CLI globally:
-  ```bash
+```bash
   npm install -g @tauri-apps/cli
 ````
 
