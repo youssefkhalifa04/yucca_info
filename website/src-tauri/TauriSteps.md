@@ -77,7 +77,4 @@ npm run desktop:build
 * Standalone: `src-tauri/target/release/app.exe`
 * Installer: `src-tauri/target/release/bundle/msi/app_0.1.0_x64_en-US.msi`
 
-```
 
-You can copy and paste this directly into your `README.md`. Let me know if you want this in a different style or language.
-```
