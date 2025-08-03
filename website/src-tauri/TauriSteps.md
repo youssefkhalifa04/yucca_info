@@ -25,22 +25,14 @@ Installed Tauri CLI globally:
 npm install -g @tauri-apps/cli
 Installed Tauri API in the project:
 
-bash
-Copy
-Edit
 npm install @tauri-apps/api
 Initialized Tauri:
 
-bash
-Copy
-Edit
 npx @tauri-apps/cli init
 3. 📝 Configuration
 Updated tauri.conf.json located at:
 
-makefile
-Copy
-Edit
+
 c:\Users\foued\Desktop\website\src-tauri\tauri.conf.json
 Changes made:
 
