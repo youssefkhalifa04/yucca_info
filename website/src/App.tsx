@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { EggTypeProvider } from "./contexts/EggTypeContext";
+import { ControlModeProvider } from './contexts/ControlModeContext';
 
 
 
@@ -18,16 +19,18 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <EggTypeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <ControlModeProvider>
+         <TooltipProvider>
+           <Toaster />
+           <Sonner />
+           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+           </BrowserRouter>
+         </TooltipProvider>
+        </ControlModeProvider>
       </EggTypeProvider>
     </QueryClientProvider>
   );
