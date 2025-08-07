@@ -1,12 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Fan, Droplets, RotateCcw, Thermometer, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useControlMode } from '@/contexts/ControlModeContext';
 
 const ManualControl = () => {
+  const { mode, setMode } = useControlMode();
+  console.log('ManualControl page - Current control mode:', mode);
+  
   const [manualStates, setManualStates] = useState({
     fan: false,
     waterValve: false,
@@ -14,18 +18,46 @@ const ManualControl = () => {
     heater: false
   });
 
-  const [isAutomaticMode, setIsAutomaticMode] = useState(true);
+  // Load manual states from localStorage on component mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('manualStates');
+      console.log('Loading manual states from localStorage:', stored);
+      if (stored) {
+        const parsedStates = JSON.parse(stored);
+        setManualStates(parsedStates);
+        console.log('Manual states loaded:', parsedStates);
+      } else {
+        console.log('No stored manual states found, using defaults');
+      }
+    } catch (error) {
+      console.warn('Failed to load manual states from localStorage:', error);
+    }
+  }, []);
 
   const handleToggle = (actuator: string, state: boolean) => {
-    if (isAutomaticMode) {
+    if (mode === 'automatic') {
       toast.error("Cannot control actuators in Automatic Mode. Switch to Manual Mode first.");
       return;
     }
 
-    setManualStates(prev => ({
-      ...prev,
+    const newStates = {
+      ...manualStates,
       [actuator]: state
-    }));
+    };
+
+    console.log(`Toggling ${actuator} to ${state}`);
+
+    // Update state
+    setManualStates(newStates);
+
+    // Save to localStorage
+    try {
+      localStorage.setItem('manualStates', JSON.stringify(newStates));
+      console.log('Manual states saved to localStorage:', newStates);
+    } catch (error) {
+      console.warn('Failed to save manual states to localStorage:', error);
+    }
 
     // Simulate sending command via serial port
     console.log(`Manual control: ${actuator} ${state ? 'ON' : 'OFF'}`);
@@ -68,14 +100,14 @@ const ManualControl = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manual Control</h1>
         <div className="flex items-center space-x-4">
-          <Badge variant={isAutomaticMode ? "default" : "secondary"} className="text-sm">
-            {isAutomaticMode ? "Automatic Mode Active" : "Manual Mode Active"}
+          <Badge variant={mode === 'automatic' ? "default" : "secondary"} className="text-sm">
+            {mode === 'automatic' ? "Automatic Mode Active" : "Manual Mode Active"}
           </Badge>
         </div>
       </div>
 
       {/* Mode Warning */}
-      {isAutomaticMode && (
+      {mode === 'automatic' && (
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="pt-6">
             <div className="flex items-center space-x-3">
@@ -94,7 +126,7 @@ const ManualControl = () => {
       {/* Actuator Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {actuators.map((actuator) => (
-          <Card key={actuator.id} className={isAutomaticMode ? "opacity-60" : ""}>
+          <Card key={actuator.id} className={mode === 'automatic' ? "opacity-60" : ""}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -106,7 +138,7 @@ const ManualControl = () => {
                 <Switch
                   checked={manualStates[actuator.id as keyof typeof manualStates]}
                   onCheckedChange={(checked) => handleToggle(actuator.id, checked)}
-                  disabled={isAutomaticMode}
+                  disabled={mode === 'automatic'}
                   className="data-[state=checked]:bg-green-600"
                 />
               </CardTitle>
@@ -153,16 +185,30 @@ const ManualControl = () => {
             </div>
             <button
               onClick={() => {
-                setManualStates({
+                const stopAllStates = {
                   fan: false,
                   waterValve: false,
                   rotationMotor: false,
                   heater: false
-                });
+                };
+                
+                console.log('STOP ALL activated - setting all actuators to false');
+                
+                // Update state
+                setManualStates(stopAllStates);
+                
+                // Save to localStorage
+                try {
+                  localStorage.setItem('manualStates', JSON.stringify(stopAllStates));
+                  console.log('Manual states saved to localStorage (STOP ALL):', stopAllStates);
+                } catch (error) {
+                  console.warn('Failed to save manual states to localStorage:', error);
+                }
+                
                 toast.error("All actuators stopped!");
               }}
               className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-              disabled={isAutomaticMode}
+              disabled={mode === 'automatic'}
             >
               STOP ALL
             </button>

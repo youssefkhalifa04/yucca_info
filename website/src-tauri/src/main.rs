@@ -12,7 +12,7 @@ fn spawn_flask() -> Child {
 
 fn main() {
     let flask_process = Arc::new(Mutex::new(Some(spawn_flask())));
-
+    
     let flask_process_clone = flask_process.clone();
 
     tauri::Builder::default()
