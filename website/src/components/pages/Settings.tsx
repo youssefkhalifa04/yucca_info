@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Settings as SettingsIcon, Usb, Shield, Clock, Save } from 'lucide-react';
+import { send } from 'process';
 
 const Settings = () => {
   const [settings, setSettings] = useState({
@@ -20,24 +21,65 @@ const Settings = () => {
     dataLogging: true,
     tempUnit: 'celsius'
   });
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
 
   const handleSettingChange = (key: string, value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
     }));
+    
+    toast.success(`Setting ${key} updated to ${value}`);
   };
+ 
 
-  const handleSaveSettings = () => {
-    console.log('Saving settings:', settings);
-    toast.success('Settings saved successfully');
-  };
+  async function sendSettingsToServer() {
+      try {
+        const response = await fetch('/api/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(settings)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to save settings');
+        }
+        
+        const data = await response.json();
+        console.log('Settings saved successfully:', data);
+      } catch (error) {
+        console.error('Error saving settings:', error);
+        toast.error('Failed to save settings');
+      }
+    }
+    
+  
 
-  const handleTestConnection = () => {
-    toast.info('Testing serial connection...');
-    setTimeout(() => {
-      toast.success('Serial connection test successful');
-    }, 1500);
+  const handleSaveSettings = async () => {
+  console.log('Saving settings:', settings);
+  await sendSettingsToServer(); // this function already handles success and failure toasts
+};
+
+
+  const handleTestConnection = async () => {
+    
+    try {
+        await sendSettingsToServer();
+        const response = await fetch('/api/status');
+        const data = await response.json();
+        setConnectionStatus(data.status);
+      } catch (error) {
+        console.error('Error checking connection status:', error);
+      }
+    if (connectionStatus === 'Connected') {
+      toast.success('Connection successful');
+    }
+    else {
+      toast.error('Connection failed');
+    }
+    
   };
 
   const handleResetSettings = () => {
@@ -85,6 +127,14 @@ const Settings = () => {
                   <SelectItem value="COM2">COM2</SelectItem>
                   <SelectItem value="COM3">COM3</SelectItem>
                   <SelectItem value="COM4">COM4</SelectItem>
+                  <SelectItem value="COM5">COM5</SelectItem>
+                  <SelectItem value="COM6">COM6</SelectItem>
+                  <SelectItem value="COM7">COM7</SelectItem>
+                  <SelectItem value="COM8">COM8</SelectItem>
+                  <SelectItem value="COM9">COM9</SelectItem>
+                  <SelectItem value="COM10">COM10</SelectItem>
+                  <SelectItem value="COM11">COM11</SelectItem>
+                  <SelectItem value="COM12">COM12</SelectItem>
                   <SelectItem value="/dev/ttyUSB0">/dev/ttyUSB0</SelectItem>
                   <SelectItem value="/dev/ttyUSB1">/dev/ttyUSB1</SelectItem>
                 </SelectContent>
@@ -124,7 +174,7 @@ const Settings = () => {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="refreshRate">Data Refresh Rate (seconds)</Label>
-              <Select value={settings.refreshRate} onValueChange={(value) => handleSettingChange('refreshRate', value)}>
+              <Select value={settings.refreshRate} disabled onValueChange={(value) => handleSettingChange('refreshRate', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -139,7 +189,7 @@ const Settings = () => {
 
             <div>
               <Label htmlFor="tempUnit">Temperature Unit</Label>
-              <Select value={settings.tempUnit} onValueChange={(value) => handleSettingChange('tempUnit', value)}>
+              <Select disabled value={settings.tempUnit} onValueChange={(value) => handleSettingChange('tempUnit', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

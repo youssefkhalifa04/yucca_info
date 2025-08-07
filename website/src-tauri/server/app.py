@@ -1,15 +1,23 @@
 
 from flask import Flask, request, jsonify
-from utils.serial_reader import save_data_to_supabase, get_latest_data, start_serial_reader
-from utils.controller import active_motor, stop_motor, active_heater, stop_heater, active_fan, stop_fan
+from utils.serial_reader import save_data_to_supabase, get_latest_data, start_serial_reader, test_serial_connection
+from utils.controller import active_motor, stop_motor, active_heater, stop_heater, active_fan, stop_fan 
 import threading
 import time
 
 app = Flask(__name__)
+saved_settings = {}
+port = None
+baudrate = None
 
 def background_serial_task():
-    start_serial_reader()  # Start the background thread for serial or simulation
+    global port, baudrate
+    while port is None or baudrate is None:
+        
+        time.sleep(2)
     
+    start_serial_reader(port=port, baudrate=baudrate) 
+
     while True:
         try:
             data = get_latest_data()
@@ -28,6 +36,26 @@ def background_serial_task():
 # Start the background thread
 serial_thread = threading.Thread(target=background_serial_task, daemon=True)
 serial_thread.start()
+
+@app.route('/api/settings', methods=['POST'])
+def save_settings():
+    global saved_settings , port , baudrate
+    settings = request.get_json()
+    saved_settings = settings
+    port = settings.get('serialPort')
+    print(port , baudrate)
+    baudrate = settings.get('baudRate')
+    return jsonify({"message": "Settings saved successfully", "settings": saved_settings})
+
+@app.route('/api/status', methods=['GET'])
+def check_status():
+    global port, baudrate
+    try:
+        Test = test_serial_connection(port , baudrate)
+        return jsonify({"status": "Connected"})
+    except Exception as e:
+        print(f"Error in Testconnection: {e}")
+        return jsonify({"status": "Disconnected", "error": str(e)})
 
 @app.route('/handle_motor_action', methods=['POST'])
 def motor_action():
@@ -61,4 +89,4 @@ def fan_action():
     return jsonify({'message': 'Fan action handled'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=3000)

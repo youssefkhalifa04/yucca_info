@@ -11,6 +11,80 @@ from integration.supabase import supabase
 latest_data = {}  # Shared in-memory data
 use_simulation = False  # Will become True if serial connection fails
 
+def test_serial_connection(port='COM3', baudrate=9600, timeout=2):
+    """
+    Test if a serial connection can be established with the given port and baudrate.
+    
+    Args:
+        port (str): Serial port to test (e.g., 'COM3', '/dev/ttyUSB0')
+        baudrate (int): Baudrate to test (e.g., 9600, 115200)
+        timeout (int): Connection timeout in seconds
+    
+    Returns:
+        dict: {
+            'success': bool,
+            'message': str,
+            'port': str,
+            'baudrate': int,
+            'error': str or None
+        }
+    """
+    result = {
+        'success': False,
+        'message': '',
+        'port': port,
+        'baudrate': baudrate,
+        'error': None
+    }
+    
+    try:
+        print(f"[TEST] Testing serial connection on {port} at {baudrate} baud...")
+        
+        # Attempt to open the serial connection
+        ser = serial.Serial(port, baudrate, timeout=timeout)
+        
+        # Test if the port is actually open
+        if ser.is_open:
+            print(f"[TEST] Successfully connected to {port} at {baudrate} baud")
+            result['success'] = True
+            result['message'] = f"Successfully connected to {port} at {baudrate} baud"
+            
+            # Optional: Try to read a line to test communication
+            try:
+                ser.write(b'TEST\n')  # Send a test command
+                time.sleep(0.1)  # Give device time to respond
+                response = ser.readline().decode('utf-8').strip()
+                if response:
+                    print(f"[TEST] Device responded: {response}")
+                    result['message'] += f" - Device responded: {response}"
+                else:
+                    print(f"[TEST] Device connected but no response to test command")
+                    result['message'] += " - Device connected but no response"
+            except Exception as comm_error:
+                print(f"[TEST] Connected but communication test failed: {comm_error}")
+                result['message'] += f" - Communication test failed: {comm_error}"
+            
+            # Close the connection after testing
+            ser.close()
+            print(f"[TEST] Connection test completed, port closed")
+            
+        else:
+            result['error'] = "Port opened but not accessible"
+            result['message'] = f"Failed to access {port}"
+            print(f"[TEST] Port {port} opened but not accessible")
+            
+    except serial.SerialException as e:
+        result['error'] = str(e)
+        result['message'] = f"Serial connection failed: {e}"
+        print(f"[TEST] Serial connection failed on {port}: {e}")
+        
+    except Exception as e:
+        result['error'] = str(e)
+        result['message'] = f"Unexpected error: {e}"
+        print(f"[TEST] Unexpected error testing {port}: {e}")
+    
+    return result
+
 def simulate_data():
     latest = {}
     
