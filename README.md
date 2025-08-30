@@ -39,16 +39,16 @@ A modern, full-stack desktop application for monitoring and controlling an egg i
 ```
 ┌──────────────┐      Serial/USB/HTTP     ┌──────────────┐      REST API      ┌──────────────┐
 │  Incubator   │ ───────────────────────▶│    Flask      │ ────────────────▶ │  Supabase    │
-│  Hardware    │                          │   Backend    │                  │  Cloud DB    │
-└──────────────┘                          └──────────────┘                  └──────────────┘
-                                                                     ▲   ▲
-                                                                     │   │
-                                    HTTP/IPC              │   │
-                                                                     │   │
-                                                            ┌──────────────┐
-                                                            │  Desktop app │
-                                                            │   Frontend   │
-                                                            └──────────────┘
+│  Hardware    │                          │   Backend    │                    │  Cloud DB    │
+└──────────────┘                          └──────────────┘                    └──────────────┘
+                                                                                   ▲   ▲
+                                                                                   │   │
+                                                  HTTP/IPC                         │   │
+                                                                                   │   │
+                                                                          ┌──────────────┐
+                                                                          │  Desktop app │
+                                                                          │   Frontend   │
+                                                                          └──────────────┘
 ```
 
 ---
