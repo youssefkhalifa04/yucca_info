@@ -47,6 +47,7 @@ A modern, full-stack desktop application for monitoring and controlling an egg i
                                                                                    │   │
                                                                           ┌──────────────┐
                                                                           │  Desktop app │
+                                                                          │      &       │
                                                                           │   Frontend   │
                                                                           └──────────────┘
 ```
